@@ -7,6 +7,7 @@ import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
@@ -34,7 +35,7 @@ public class BatchConfig {
     private inMemeItemProcessor InMemeItemProcessor;
 
     @Bean
-    public Step step1(){
+    public Step step1() {
         return stepBuilderFactory.get("step")
                 .listener(stepExecutionListener)
                 .tasklet(hello())
@@ -42,7 +43,7 @@ public class BatchConfig {
     }
 
     @Bean
-    public Step step2(){
+    public Step step2() {
         return stepBuilderFactory.get("step2")
                 .listener(stepExecutionListener)
                 .tasklet(hello2())
@@ -70,8 +71,10 @@ public class BatchConfig {
     }
 
     @Bean
-    public Job helloJob(){
+    public Job helloJob() {
         return jobBuilderFactory.get("test")
+
+                .incrementer(new RunIdIncrementer())
                 .start(step1())
                 .next(step2())
                 .next(step3())
@@ -81,17 +84,14 @@ public class BatchConfig {
 
 
     @Bean
-     public ItemReader reader(){
-       return new ItemReader();
-     }
+    public ItemReader reader() {
+        return new ItemReader();
+    }
 
 
-
-
-    public Step step3()
-    {
+    public Step step3() {
         return stepBuilderFactory.get("step3")
-                .<Integer,Integer>chunk(3).reader(reader())
+                .<Integer, Integer>chunk(3).reader(reader())
                 .processor(InMemeItemProcessor)
                 .writer(new ConsoleItemWriter())
                 .build();
